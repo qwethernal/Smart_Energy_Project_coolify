@@ -34,8 +34,19 @@ services:
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      cat > /tmp/prometheus.yml <<'EOF'
+      global:
+        scrape_interval: 15s
+
+      scrape_configs:
+        - job_name: "smart-energy-app"
+          static_configs:
+            - targets: ["app:3000"]
+      EOF
+
+      /bin/prometheus --config.file=/tmp/prometheus.yml --storage.tsdb.path=/prometheus
     depends_on:
       - app
 
@@ -49,8 +60,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
       - loki
