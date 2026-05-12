@@ -60,8 +60,6 @@ services:
   loki:
     image: grafana/loki:latest
     restart: unless-stopped
-    # Loki не открываем наружу: Grafana подключается внутри Docker-сети по http://loki:3100
-    # Так Coolify не падает из-за занятых портов 3100/3101.
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki_data:/loki
@@ -71,9 +69,32 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
-    command: -config.file=/etc/promtail/config.yml
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      cat > /tmp/promtail-config.yml <<'EOF'
+      server:
+        http_listen_port: 9080
+        grpc_listen_port: 0
+
+      positions:
+        filename: /tmp/positions.yaml
+
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+
+      scrape_configs:
+        - job_name: docker
+          docker_sd_configs:
+            - host: unix:///var/run/docker.sock
+              refresh_interval: 5s
+          relabel_configs:
+            - source_labels: ['__meta_docker_container_name']
+              target_label: container
+            - source_labels: ['__meta_docker_container_log_stream']
+              target_label: stream
+      EOF
+
+      /usr/bin/promtail -config.file=/tmp/promtail-config.yml
     depends_on:
       - loki
 
