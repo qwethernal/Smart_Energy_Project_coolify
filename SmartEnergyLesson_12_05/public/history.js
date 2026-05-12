@@ -1,0 +1,1 @@
+document.getElementById('nav').innerHTML=nav();guard();async function load(){const arr=await api('/api/history');history.innerHTML='<table><tr><th>Дата</th><th>Устройство</th><th>Действие</th><th>Цена</th></tr>'+arr.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString()}</td><td>${x.device_name}</td><td>${x.action}</td><td>${x.price}</td></tr>`).join('')+'</table>'}load()

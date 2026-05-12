@@ -1,0 +1,1 @@
+async function reg(){try{await api('/api/register',{method:'POST',body:JSON.stringify({username:username.value,email:email.value,password:password.value})});location='/login.html'}catch(e){msg(e.message)}}

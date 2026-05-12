@@ -1,0 +1,11 @@
+{
+  "title": "Smart Energy Dashboard",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {"type":"timeseries","title":"API requests","gridPos":{"x":0,"y":0,"w":12,"h":8},"targets":[{"expr":"rate(smart_energy_http_requests_total[1m])","legendFormat":"{{method}} {{route}}"}]},
+    {"type":"timeseries","title":"Latency P95","gridPos":{"x":12,"y":0,"w":12,"h":8},"targets":[{"expr":"histogram_quantile(0.95, sum(rate(smart_energy_http_latency_seconds_bucket[5m])) by (le))","legendFormat":"P95"}]},
+    {"type":"timeseries","title":"Device commands","gridPos":{"x":0,"y":8,"w":12,"h":8},"targets":[{"expr":"rate(smart_energy_device_commands_total[1m])","legendFormat":"{{action}}"}]},
+    {"type":"timeseries","title":"CPU / memory process metrics","gridPos":{"x":12,"y":8,"w":12,"h":8},"targets":[{"expr":"process_cpu_user_seconds_total","legendFormat":"CPU"},{"expr":"process_resident_memory_bytes","legendFormat":"RAM"}]}
+  ]
+}
