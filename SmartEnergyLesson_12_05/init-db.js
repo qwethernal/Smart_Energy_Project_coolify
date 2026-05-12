@@ -2,6 +2,19 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 
+
+async function ensureColumn(connection, tableName, columnName, definition) {
+  const [rows] = await connection.query(
+    `SHOW COLUMNS FROM \`${tableName}\` LIKE ?`,
+    [columnName]
+  );
+
+  if (rows.length === 0) {
+    await connection.query(`ALTER TABLE \`${tableName}\` ADD COLUMN ${definition}`);
+    console.log(`Added ${tableName}.${columnName} column`);
+  }
+}
+
 async function main() {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
@@ -82,6 +95,31 @@ async function main() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+
+
+  // Database migrations for already existing MySQL volumes.
+  // CREATE TABLE IF NOT EXISTS does not update old tables, so we add missing columns manually.
+  await ensureColumn(connection, 'users', 'email', "email VARCHAR(150) NOT NULL DEFAULT 'user@example.com'");
+  await ensureColumn(connection, 'users', 'role', "role ENUM('user','admin') DEFAULT 'user'");
+  await ensureColumn(connection, 'users', 'active', 'active BOOLEAN DEFAULT TRUE');
+  await ensureColumn(connection, 'users', 'vacation_mode', 'vacation_mode BOOLEAN DEFAULT FALSE');
+  await ensureColumn(connection, 'users', 'fixed_price', 'fixed_price DECIMAL(10,4) DEFAULT 0.2000');
+  await ensureColumn(connection, 'users', 'notify_channel', "notify_channel ENUM('none','telegram','discord') DEFAULT 'none'");
+  await ensureColumn(connection, 'users', 'telegram_chat_id', 'telegram_chat_id VARCHAR(150) NULL');
+  await ensureColumn(connection, 'users', 'discord_webhook', 'discord_webhook TEXT NULL');
+  await ensureColumn(connection, 'users', 'critical_price', 'critical_price DECIMAL(10,4) DEFAULT 0.3000');
+  await ensureColumn(connection, 'users', 'created_at', 'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+
+  await ensureColumn(connection, 'devices', 'description', 'description TEXT NULL');
+  await ensureColumn(connection, 'devices', 'connection_type', "connection_type ENUM('api','mqtt','ip','demo') DEFAULT 'demo'");
+  await ensureColumn(connection, 'devices', 'connection_value', "connection_value VARCHAR(255) DEFAULT 'demo://device'");
+  await ensureColumn(connection, 'devices', 'price_limit', 'price_limit DECIMAL(10,4) NOT NULL DEFAULT 0.1500');
+  await ensureColumn(connection, 'devices', 'power_kw', 'power_kw DECIMAL(10,3) DEFAULT 1.000');
+  await ensureColumn(connection, 'devices', 'status', "status ENUM('on','off') DEFAULT 'off'");
+  await ensureColumn(connection, 'devices', 'connection_status', "connection_status ENUM('unknown','online','offline') DEFAULT 'unknown'");
+  await ensureColumn(connection, 'devices', 'manual_override', 'manual_override BOOLEAN DEFAULT FALSE');
+  await ensureColumn(connection, 'devices', 'critical', 'critical BOOLEAN DEFAULT FALSE');
+  await ensureColumn(connection, 'devices', 'created_at', 'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
 
   const [adminRows] = await connection.query('SELECT id FROM users WHERE username = ?', ['admin']);
   if (adminRows.length === 0) {
