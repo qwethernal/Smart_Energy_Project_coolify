@@ -60,8 +60,6 @@ services:
   loki:
     image: grafana/loki:latest
     restart: unless-stopped
-    ports:
-      - "3101:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
