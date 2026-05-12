@@ -1,0 +1,80 @@
+{
+  "title": "Smart Energy - Logs & Events",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Application Logs (Loki)",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 12},
+      "targets": [
+        {
+          "expr": "{job=\"smart-energy-app\"}",
+          "refId": "A",
+          "format": "logs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Error Events",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 10},
+      "targets": [
+        {
+          "expr": "{job=\"smart-energy-app\",level=\"ERROR\"} | json",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "logs",
+      "title": "System Warnings",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 10},
+      "targets": [
+        {
+          "expr": "{job=\"smart-energy-app\",level=\"WARNING\"} | json",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stats",
+      "title": "Log Level Distribution",
+      "gridPos": {"x": 0, "y": 22, "w": 8, "h": 6},
+      "targets": [
+        {
+          "expr": "sum by (level) (count_over_time({job=\"smart-energy-app\"}[1h]))",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

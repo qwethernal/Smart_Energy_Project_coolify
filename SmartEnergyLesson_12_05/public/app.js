@@ -3,3 +3,27 @@ function nav(){return `<div class="nav"><b>Smart Energy</b><a href="/dashboard.h
 async function logout(){await api('/api/logout',{method:'POST'});location='/login.html'}
 async function guard(){try{await api('/api/me')}catch{location='/login.html'}}
 function msg(t){const el=document.getElementById('msg');if(el)el.textContent=t}
+
+let ws = null;
+function initWebSocket(userId) {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  try {
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'auth', userId }));
+    };
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'price_update') {
+        if (window.onPriceUpdate) window.onPriceUpdate(data);
+      }
+    };
+    ws.onerror = (err) => console.error('WebSocket error:', err);
+    ws.onclose = () => {
+      setTimeout(() => initWebSocket(userId), 5000);
+    };
+  } catch(err) {
+    console.error('WebSocket init failed:', err);
+  }
+}

@@ -7,8 +7,12 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:init": "node init-db.js",
-    "test": "node --test",
-    "audit:deps": "npm audit --audit-level=high"
+    "test": "node --test test/",
+    "test:coverage": "node --test test/ --coverage",
+    "audit": "npm audit --audit-level=high",
+    "audit:fix": "npm audit fix --audit-level=high",
+    "security-check": "npm audit --audit-level=high && npm test",
+    "lint": "echo 'No linter configured yet'"
   },
   "dependencies": {
     "bcryptjs": "latest",
@@ -16,7 +20,9 @@
     "express": "latest",
     "express-session": "latest",
     "mysql2": "latest",
-    "prom-client": "latest"
+    "prom-client": "latest",
+    "ws": "latest",
+    "winston": "latest"
   },
   "devDependencies": {
     "nodemon": "latest"

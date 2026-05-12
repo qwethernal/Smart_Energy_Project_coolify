@@ -96,9 +96,6 @@ async function main() {
     )
   `);
 
-
-  // Database migrations for already existing MySQL volumes.
-  // CREATE TABLE IF NOT EXISTS does not update old tables, so we add missing columns manually.
   await ensureColumn(connection, 'users', 'email', "email VARCHAR(150) NOT NULL DEFAULT 'user@example.com'");
   await ensureColumn(connection, 'users', 'role', "role ENUM('user','admin') DEFAULT 'user'");
   await ensureColumn(connection, 'users', 'active', 'active BOOLEAN DEFAULT TRUE');

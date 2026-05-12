@@ -1,6 +1,28 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'smart_energy'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
 scrape_configs:
-  - job_name: smart-energy-app
+  - job_name: "smart-energy-app"
+    metrics_path: "/metrics"
     static_configs:
-      - targets: ['app:3000']
+      - targets: ["app:3000"]
+        labels:
+          service: "api"
+          group: "production"
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

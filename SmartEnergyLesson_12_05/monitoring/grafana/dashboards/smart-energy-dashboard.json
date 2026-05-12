@@ -1,11 +1,96 @@
 {
-  "title": "Smart Energy Dashboard",
+  "title": "Smart Energy Control Center - Full Monitoring",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
+  "timezone": "browser",
+  "refresh": "30s",
   "panels": [
-    {"type":"timeseries","title":"API requests","gridPos":{"x":0,"y":0,"w":12,"h":8},"targets":[{"expr":"rate(smart_energy_http_requests_total[1m])","legendFormat":"{{method}} {{route}}"}]},
-    {"type":"timeseries","title":"Latency P95","gridPos":{"x":12,"y":0,"w":12,"h":8},"targets":[{"expr":"histogram_quantile(0.95, sum(rate(smart_energy_http_latency_seconds_bucket[5m])) by (le))","legendFormat":"P95"}]},
-    {"type":"timeseries","title":"Device commands","gridPos":{"x":0,"y":8,"w":12,"h":8},"targets":[{"expr":"rate(smart_energy_device_commands_total[1m])","legendFormat":"{{action}}"}]},
-    {"type":"timeseries","title":"CPU / memory process metrics","gridPos":{"x":12,"y":8,"w":12,"h":8},"targets":[{"expr":"process_cpu_user_seconds_total","legendFormat":"CPU"},{"expr":"process_resident_memory_bytes","legendFormat":"RAM"}]}
+    {
+      "type": "stat",
+      "title": "Current Electricity Price",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "smart_energy_electricity_price", "legendFormat": "€/kWh"}],
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"hideFrom": {"tooltip": false, "viz": false, "legend": false}}}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Active Devices",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "smart_energy_active_devices", "legendFormat": "Count"}],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "Active Sessions",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "smart_energy_active_sessions", "legendFormat": "Users"}],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    },
+    {
+      "type": "stat",
+      "title": "API Availability",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "100 * (1 - (increase(smart_energy_http_requests_total{status=~'5..'}[5m]) / increase(smart_energy_http_requests_total[5m])))", "legendFormat": "%"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "API Requests (Last Hour)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(smart_energy_http_requests_total{status=~'2..'}[1m])) by (method)", "legendFormat": "{{method}} - 2xx"},
+        {"expr": "sum(rate(smart_energy_http_requests_total{status=~'4..'}[1m])) by (method)", "legendFormat": "{{method}} - 4xx"},
+        {"expr": "sum(rate(smart_energy_http_requests_total{status=~'5..'}[1m])) by (method)", "legendFormat": "{{method}} - 5xx"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"hideFrom": {"tooltip": false, "viz": false, "legend": false}}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "API Latency - Percentiles",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum(rate(smart_energy_http_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P50"},
+        {"expr": "histogram_quantile(0.95, sum(rate(smart_energy_http_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P95"},
+        {"expr": "histogram_quantile(0.99, sum(rate(smart_energy_http_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P99"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Device Command Activity",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "increase(smart_energy_device_commands_total[1m])", "legendFormat": "{{action}}"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"hideFrom": {"tooltip": false, "viz": false, "legend": false}}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Price API Errors",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "increase(smart_energy_price_fetch_errors_total[5m])", "legendFormat": "{{error_type}}"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"hideFrom": {"tooltip": false, "viz": false, "legend": false}}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Process Metrics - CPU & Memory",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "rate(process_cpu_user_seconds_total[1m])", "legendFormat": "CPU (user)"},
+        {"expr": "process_resident_memory_bytes / 1024 / 1024", "legendFormat": "Memory (MB)"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Electricity Price History",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "smart_energy_electricity_price", "legendFormat": "Elering Price"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    }
   ]
 }
